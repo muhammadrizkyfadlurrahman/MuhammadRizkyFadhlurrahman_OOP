@@ -1,0 +1,13 @@
+```java
+public void takeDamage(int damage) {
+       hp -= damage;
+       if (hp <0) {
+        hp = 0;
+       }
+       if (hp > 0) {
+        System.out.println(name + " took " + damage + " damage! Remaining HP : " + hp);    
+       } else {
+        System.out.println(name + " was defeated!");
+       }
+    }
+```
