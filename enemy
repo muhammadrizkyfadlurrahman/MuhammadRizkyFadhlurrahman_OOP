@@ -1,0 +1,11 @@
+```java
+public void takeDamage(int damage) {
+       hp -= damage;
+       if (hp < 0) {
+        hp = 0;
+       }
+       System.out.println(name + "took" + damage + "damage! HP: " + hp + "/" + maxHP);
+       if (hp == 0) {
+        System.out.prntln(name + " was defeated!");
+       }
+    }
