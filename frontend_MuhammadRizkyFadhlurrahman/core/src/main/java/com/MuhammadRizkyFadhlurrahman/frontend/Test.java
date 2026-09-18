@@ -1,5 +1,8 @@
 package com.MuhammadRizkyFadhlurrahman.frontend;
 
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
+
 public class Test {
     public static void main(String[] args) {
         System.out.println("=== TOUHOU OOP PRACTICUM - MODULE 1: BASIC CLASSES & OBJECT INTERACTION ===");

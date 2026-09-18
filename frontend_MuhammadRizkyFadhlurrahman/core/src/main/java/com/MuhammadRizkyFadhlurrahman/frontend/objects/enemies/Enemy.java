@@ -1,28 +1,8 @@
-package com.MuhammadRizkyFadhlurrahman.frontend;
+package com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies;
 
-<<<<<<< HEAD
-public class Enemy {
-    String name;
-    int hp;
-    int maxHp;
-
-    public Enemy(String name, int hp) {
-        this.name = name;
-        this.hp = hp;
-        this.maxHp = hp;
-    }
-
-    public void takeDamage(int damage) {
-        this.hp -= damage;
-        if (this.hp < 0) {
-            this.hp = 0;
-        }
-        System.out.println(name + " took " + damage + " damage! HP: " + this.hp + "/" + this.maxHp);
-        if (this.hp == 0) {
-            System.out.println(name + " was defeated!");
-        }
-=======
 import com.badlogic.gdx.graphics.Color;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
 
 public class Enemy extends GameObject {
     private String name;
@@ -52,6 +32,7 @@ public class Enemy extends GameObject {
         }
 
         this.hp -= damage;
+
         if (this.hp <= 0) {
             this.hp = 0;
             System.out.println(name + " took " + damage + " damage! HP: " + this.hp + "/" + this.maxHp);
@@ -61,15 +42,26 @@ public class Enemy extends GameObject {
 
         System.out.println(name + " took " + damage + " damage! HP: " + this.hp + "/" + this.maxHp);
         return false;
->>>>>>> 1fb6d60 (CS2 - Complete module 2)
     }
 
     public void attack(Player player, int damage) {
-        System.out.println(name + " unleashes bullet barrage on " + player.name + "!");
+        System.out.println(name + " unleashes bullet barrage on " + player.getName() + "!");
         player.takeDamage(damage);
     }
 
     public boolean isAlive() {
         return this.hp > 0;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getHp() {
+        return hp;
+    }
+
+    public long getScoreValue() {
+        return scoreValue;
     }
 }
