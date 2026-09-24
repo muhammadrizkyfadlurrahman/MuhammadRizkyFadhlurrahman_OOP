@@ -1,19 +1,30 @@
 package com.MuhammadRizkyFadhlurrahman.frontend;
 
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Boss;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Fairy;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.BulletType;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
+
         System.out.println("=== TOUHOU OOP PRACTICUM - MODULE 1: BASIC CLASSES & OBJECT INTERACTION ===");
 
-        // Instantiating objects (Player and Enemy)
         Player reimu = new Player("Reimu Hakurei", 100, 15, 3);
-        Enemy fairyBoss= new Enemy("Cirno (Stage 2 Boss)", 50);
+        Enemy fairyBoss = new Enemy("Cirno (Stage 2 Boss)", 50);
 
         System.out.println("\n--- Initial Battle State ---");
-        System.out.println("Player: " + reimu.name + " | HP: " + reimu.hp + " | Power: " + reimu.power + " | SpellCards: " + reimu.spellCards);
-        System.out.println("Enemy:  " + fairyBoss.name + " | HP: " + fairyBoss.hp);
+        System.out.println("Player: " + reimu.getName() + " | HP: " + reimu.getHp()
+            + " | Power: " + reimu.getPower()
+            + " | SpellCards: " + reimu.getSpellCards());
+        System.out.println("Enemy:  " + fairyBoss.getName() + " | HP: " + fairyBoss.getHp());
 
         System.out.println("\n--- Turn 1: Player Shoots Enemy ---");
         reimu.shoot(fairyBoss);
@@ -28,5 +39,106 @@ public class Test {
         fairyBoss.attack(reimu, 80);
 
         System.out.println("\n=== Battle Simulation Complete ===");
+
+
+        System.out.println("\n\n=== TOUHOU OOP PRACTICUM - MODULE 2: ENCAPSULATION, INHERITANCE & SCORE SYSTEM ===");
+
+        Player reimu2 = new Player("Reimu Hakurei", 100, 15, 3);
+        Fairy fairy = new Fairy("Stage 1 Fairy", 20);
+        Boss cirno = new Boss("Cirno (Stage 2 Boss)", 150);
+        Item pointItem = new Item(200, 450, 12, 12, 120f, "Point Item", 1000L);
+
+        System.out.println("\n--- Testing Encapsulation & Inheritance ---");
+        System.out.println("Player: " + reimu2.getName() + " | Position: ("
+            + reimu2.getX() + ", " + reimu2.getY() + ")");
+        System.out.println("Fairy:  " + fairy.getName() + " | Defeat Worth: "
+            + fairy.getScoreValue() + " pts");
+        System.out.println("Boss:   " + cirno.getName() + " | Defeat Worth: "
+            + cirno.getScoreValue() + " pts | Size: "
+            + cirno.getWidth() + "x" + cirno.getHeight());
+        System.out.println("Item:   " + pointItem.getItemType() + " | Value: "
+            + pointItem.getScoreValue() + " pts | Speed: "
+            + pointItem.getSpeed());
+
+        System.out.println("\n--- Testing Item Movement Update ---");
+        System.out.println("Initial Item Y: " + pointItem.getY());
+        pointItem.update(0.5f);
+        System.out.println("Item Y after 0.5s update: "
+            + pointItem.getY() + " (linear downward movement)");
+
+        System.out.println("\n--- Testing Scoring System ---");
+        System.out.println("Initial Score: " + reimu2.getScore());
+        reimu2.shoot(fairy);
+        reimu2.collectItem(pointItem);
+        reimu2.shoot(cirno);
+        System.out.println("Final Score: " + reimu2.getScore() + " pts");
+
+        System.out.println("\n=== Module 2 Test Completed Successfully ===");
+
+
+        System.out.println("\n\n=== TOUHOU OOP PRACTICUM - MODULE 3: POLYMORPHISM & ABSTRACTION ===");
+
+        System.out.println("--- Testing ItemType & BulletType Enums ---");
+        System.out.println("Available Item Types: "
+            + ItemType.POWER + ", "
+            + ItemType.POINT + ", "
+            + ItemType.BOMB + ", "
+            + ItemType.LIFE);
+
+        System.out.println("Available Bullet Types: "
+            + BulletType.DANMAKU + ", "
+            + BulletType.AMULET + ", "
+            + BulletType.LASER + ", "
+            + BulletType.MASTER_SPARK);
+
+        List<GameObject> entities = new ArrayList<>();
+
+        Player p = new Player(100, 100, "Reimu Hakurei", 100, 15, 3);
+        Fairy f = new Fairy(100, 100, "Stage 1 Fairy", 20);
+        Boss b = new Boss(200, 200, "Cirno", 150);
+        Item item = new Item(300, 300, ItemType.POWER);
+
+        entities.add(p);
+        entities.add(f);
+        entities.add(b);
+        entities.add(item);
+
+        System.out.println("\n--- Testing Iterative Update on List<GameObject> entities ---");
+        System.out.println("Initial Item Y: " + item.getY());
+
+        for (GameObject entity : entities) {
+            entity.update(0.5f);
+        }
+
+        System.out.println("Item Y after entity.update(0.5s): " + item.getY());
+
+        System.out.println("\n--- Testing Polymorphic Collision Information ---");
+
+        System.out.println("Simulating collision at (100, 100) (Fairy position):");
+
+        if (p.getCoreHitbox().overlaps(f.getCoreHitbox())) {
+            p.onCollision(f);
+        }
+
+        p.setX(200);
+        p.setY(200);
+
+        System.out.println("Moving player to (200, 200) (Boss position):");
+
+        if (p.getCoreHitbox().overlaps(b.getCoreHitbox())) {
+            p.onCollision(b);
+        }
+
+        p.setX(300);
+        p.setY(item.getY());
+
+        System.out.println("Moving player to (300, " + item.getY()
+            + ") (Item current position):");
+
+        if (p.getCoreHitbox().overlaps(item.getCoreHitbox())) {
+            p.onCollision(item);
+        }
+
+        System.out.println("\n=== Module 3 Test Completed Successfully ===");
     }
 }

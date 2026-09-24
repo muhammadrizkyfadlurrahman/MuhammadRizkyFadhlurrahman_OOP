@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 public abstract class GameObject implements Collidable {
-
     protected float x;
     protected float y;
     protected float width;
@@ -23,11 +22,14 @@ public abstract class GameObject implements Collidable {
     }
 
     public void update(float delta) {
+        // Base update method
     }
 
     public void render(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(this.color);
-        shapeRenderer.rect(this.x, this.y, this.width, this.height);
+        if (shapeRenderer != null && color != null) {
+            shapeRenderer.setColor(color);
+            shapeRenderer.rect(x, y, width, height);
+        }
     }
 
     @Override
@@ -39,57 +41,33 @@ public abstract class GameObject implements Collidable {
     public Rectangle getGrazeHitbox() {
         return new Rectangle(x - 10, y - 10, width + 20, height + 20);
     }
+
     @Override
     public void onCollision(Collidable other) {
-        // Leave empty for base class
-    }
-    public float getX() {
-        return x;
-    }
-    public void setX(float x) {
-        this.x = x;
-    }
-    public float getY() {
-        return y;
-    }
-    public void setY(float y) {
-        this.y = y;
-    }
-    public float getWidth() {
-        return width;
+        // Base collision handler
     }
 
+    public float getX() { return x; }
+    public void setX(float x) { this.x = x; }
+
+    public float getY() { return y; }
+    public void setY(float y) { this.y = y; }
+
+    public float getWidth() { return width; }
     public void setWidth(float width) {
-        if (width > 0) {
-            this.width = width;
-        }
+        if (width > 0) this.width = width;
     }
 
-    public float getHeight() {
-        return height;
-    }
-
+    public float getHeight() { return height; }
     public void setHeight(float height) {
-        if (height > 0) {
-            this.height = height;
-        }
+        if (height > 0) this.height = height;
     }
 
-    public float getSpeed() {
-        return speed;
-    }
-
+    public float getSpeed() { return speed; }
     public void setSpeed(float speed) {
-        if (speed >= 0) {
-            this.speed = speed;
-        }
+        if (speed >= 0) this.speed = speed;
     }
 
-    public Color getColor() {
-        return color;
-    }
-
-    public void setColor(Color color) {
-        this.color = color;
-    }
+    public Color getColor() { return color; }
+    public void setColor(Color color) { this.color = color; }
 }

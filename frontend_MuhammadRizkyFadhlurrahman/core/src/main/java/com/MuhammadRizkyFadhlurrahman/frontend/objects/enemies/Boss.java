@@ -13,10 +13,11 @@ public class Boss extends Enemy {
     public Boss(float x, float y, String name, int hp) {
         super(x, y, 48, 48, Color.BLUE, name, hp, 5000L);
     }
+
     @Override
-    public void onCollision(Collidable other){
-        if(other instanceof Player) {
-            System.out.println("player touches boss");
+    public void onCollision(Collidable other) {
+        if (other instanceof Player) {
+            System.out.println("Player touches boss");
         }
     }
 }
