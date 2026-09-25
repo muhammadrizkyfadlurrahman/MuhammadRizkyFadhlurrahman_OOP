@@ -2,6 +2,8 @@ package com.MuhammadRizkyFadhlurrahman.frontend;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import java.util.Iterator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
@@ -44,7 +46,18 @@ public class Main extends ApplicationAdapter {
         entities.add(powerItem);
         entities.add(pointItem);
     }
+     public <T extends GameObject> void updateAndClean{
+        List<T> list, float delta, float screenWidth, float screenHeight){
+    Iterator<T> iterator = list.iterator()
+        while (iterator.hasNext()) {
+            T entity = iterator.next();
 
+            entity.update(delta);
+            if(entity.isOffScreen(screen))
+        }
+
+        }
+    }
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();

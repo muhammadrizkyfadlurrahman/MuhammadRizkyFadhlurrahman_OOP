@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
 
 public class Player extends GameObject {
     private String name;
@@ -86,7 +87,14 @@ public class Player extends GameObject {
         }
     }
 
+    public Bullet shootBullet() {
+        int damage = 10 + power;
+        System.out.println(name + " shoots bullet dealing " + damage + " DMG!");
+        return new Bullet(x + width / 2 - 4, y + height, BulletType.AMULET, damage);
+    }
+
     public void collectItem(Item item) {
+        if (item.isDestroyed())) return;
         ItemType type = item.getItemTypeEnum();
 
         if (type != null) {
@@ -117,7 +125,9 @@ public class Player extends GameObject {
         } else {
             addScore(item.getScoreValue());
             System.out.println(name + " collected " + item.getItemType() + "!");
+
         }
+        item.destroy();
     }
 
     public void takeDamage(int damage) {

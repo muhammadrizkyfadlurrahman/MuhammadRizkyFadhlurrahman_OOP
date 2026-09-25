@@ -12,6 +12,8 @@ public abstract class GameObject implements Collidable {
     protected float speed;
     protected Color color;
 
+    protected boolean active = true;
+
     public GameObject(float x, float y, float width, float height, float speed, Color color) {
         this.x = x;
         this.y = y;
@@ -26,7 +28,7 @@ public abstract class GameObject implements Collidable {
     }
 
     public void render(ShapeRenderer shapeRenderer) {
-        if (shapeRenderer != null && color != null) {
+        if (shapeRenderer != null && color != null && active) {
             shapeRenderer.setColor(color);
             shapeRenderer.rect(x, y, width, height);
         }
@@ -39,14 +41,29 @@ public abstract class GameObject implements Collidable {
 
     @Override
     public Rectangle getGrazeHitbox() {
+        // Graze hitbox is slightly larger than core hitbox (+10px padding)
         return new Rectangle(x - 10, y - 10, width + 20, height + 20);
     }
 
     @Override
     public void onCollision(Collidable other) {
-        // Base collision handler
+        // Base collision handler (can be overridden by subclasses)
     }
 
+    public boolean isDestroyed() {
+        return !active;
+    }
+
+    public void destroy() {
+        active = false;
+    }
+
+    public boolean isOffScreen(float screenWidth, float screenHeight) {
+        return x < -50 || x > screenWidth + 50 ||
+            y < -50 || y > screenHeight + 50;
+    }
+
+    // Encapsulation: Getters and Setters
     public float getX() { return x; }
     public void setX(float x) { this.x = x; }
 
