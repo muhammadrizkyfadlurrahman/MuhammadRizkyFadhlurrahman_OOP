@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -47,37 +45,41 @@ public class ScoreController {
                     .body("Failed to create score");
         }
     }
+
     @GetMapping
-    public ResponseEntity<List<Score>> getAllScores(){
+    public ResponseEntity<List<Score>> getAllScores() {
         List<Score> scores = scoreService.getAllScores();
         return ResponseEntity.ok(scores);
     }
+
     @GetMapping("/leaderboard")
-    public  ResponseEntity<List<Score>> getLeaderboardByPoint(
+    public ResponseEntity<List<Score>> getLeaderboardByPoint(
             @RequestParam(defaultValue = "10") Integer limit) {
         List<Score> scores = scoreService.getLeaderboard(limit);
         return ResponseEntity.ok(scores);
     }
+
     @GetMapping("/above/{minValue}")
     public ResponseEntity<List<Score>> getScoresAboveValue(
             @PathVariable Integer minValue) {
         List<Score> scores = scoreService.getScoreAboveValue(minValue);
         return ResponseEntity.ok(scores);
     }
+
     @GetMapping("/recent")
-    public ResponseEntity<List<Score>> getRecentScores(){
+    public ResponseEntity<List<Score>> getRecentScores() {
         List<Score> scores = scoreService.getRecentScores();
         return ResponseEntity.ok(scores);
     }
+
     @DeleteMapping("/{scoreId}")
-    public  ResponseEntity<?> deleteScore(@PathVariable UUID scoreId){
-        try{
+    public ResponseEntity<?> deleteScore(@PathVariable UUID scoreId) {
+        try {
             scoreService.deleteScore(scoreId);
             return ResponseEntity.ok("Score Deleted sucessfully");
-        } catch (RunTimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
         }
     }
-
 }

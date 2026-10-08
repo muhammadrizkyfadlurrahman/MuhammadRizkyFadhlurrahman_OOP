@@ -31,7 +31,7 @@ public class ScoreService {
         return scoreRepository.findAllByOrderByCreatedAtDesc();
     }
     public List<Score> getScoreAboveValue(Integer minValue) {
-        return scoreRepository.findByPointGreaterThan(minValue)
+        return scoreRepository.findByPointGreaterThan(minValue);
     }
     public List<Score> getLeaderboard(Integer limit){
         return scoreRepository.findTopScores(limit);
