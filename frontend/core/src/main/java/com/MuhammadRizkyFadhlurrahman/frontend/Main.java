@@ -1,14 +1,14 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import java.util.Iterator;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Boss;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Fairy;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
@@ -17,9 +17,11 @@ import com.MuhammadRizkyFadhlurrahman.frontend.systems.AssetManager;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.EntityFactory;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Main extends ApplicationAdapter {
+
     private SpriteBatch batch;
 
     private Player player;
@@ -34,20 +36,35 @@ public class Main extends ApplicationAdapter {
         batch = new SpriteBatch();
         entities = new ArrayList<>();
         fairy = new ArrayList<>();
+
         AssetManager.getInstance().init();
 
+        player = EntityFactory.createPlayer(
+            280, 40, "Reimu Hakurei", 100, 15, 3
+        );
 
-        player = EntityFactory.createPlayer(280, 40, "Reimu Hakurei", 100, 15, 3);
+        Fairy redFairy = EntityFactory.createFairy(
+            150, 380, "Red Fairy", 20
+        );
 
-        Fairy redFairy= EntityFactory.createPlayer(150, 380, "Red Fairy", 20);
-        Fairy bluefairy= EntityFactory.createFairy( 250,380, "Blue Fairy", 20, "fairy_idle_blue");
-        fairy.add(redfairy);
+        Fairy blueFairy = EntityFactory.createFairy(
+            250, 380, "Blue Fairy", 20, "fairy_idle_blue"
+        );
+
+        fairy.add(redFairy);
         fairy.add(blueFairy);
 
-        boss = EntityFactory.createBoss(380, 400, "Rumia", 150);
+        boss = EntityFactory.createBoss(
+            380, 400, "Rumia", 150
+        );
 
-        powerItem = EntityFactory.createItem(200, 450, 16, 16, 80f, ItemType.POWER);
-        pointItem = EntityFactory.createItem(320, 480, 12, 12, 120f, ItemType.POINT);
+        powerItem = EntityFactory.createItem(
+            200, 450, ItemType.POWER
+        );
+
+        pointItem = EntityFactory.createItem(
+            320, 480, ItemType.POINT
+        );
 
         entities.add(player);
         entities.addAll(fairy);
@@ -57,7 +74,8 @@ public class Main extends ApplicationAdapter {
     }
 
     public <T extends GameObject> void updateAndClean(
-        List<T> list, float delta, float screenWidth, float screenHeight) {
+        List<T> list, float delta,
+        float screenWidth, float screenHeight) {
 
         Iterator<T> iterator = list.iterator();
 
@@ -66,7 +84,8 @@ public class Main extends ApplicationAdapter {
 
             entity.update(delta);
 
-            if (entity.isOffScreen(screenWidth, screenHeight)) {
+            if (entity.isOffScreen(screenWidth, screenHeight)
+                || entity.isDestroyed()) {
                 iterator.remove();
             }
         }
@@ -80,10 +99,24 @@ public class Main extends ApplicationAdapter {
             entity.update(delta);
         }
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+            Bullet bullet = player.shootBullet();
+            entities.add(bullet);
+        }
+
         for (int i = 0; i < entities.size(); i++) {
+            GameObject a = entities.get(i);
+
+            if (a.isDestroyed()) {
+                continue;
+            }
+
             for (int j = i + 1; j < entities.size(); j++) {
-                GameObject a = entities.get(i);
                 GameObject b = entities.get(j);
+
+                if (b.isDestroyed()) {
+                    continue;
+                }
 
                 if (a.getCoreHitbox().overlaps(b.getCoreHitbox())) {
                     a.onCollision(b);
@@ -92,12 +125,25 @@ public class Main extends ApplicationAdapter {
             }
         }
 
+        Iterator<GameObject> iterator = entities.iterator();
+
+        while (iterator.hasNext()) {
+            GameObject entity = iterator.next();
+
+            if (entity.isDestroyed()
+                || entity.isOffScreen(
+                Gdx.graphics.getWidth(),
+                Gdx.graphics.getHeight())) {
+                iterator.remove();
+            }
+        }
+
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1f);
 
-        batch.begin(ShapeRenderer.ShapeType.Filled);
+        batch.begin();
 
         for (GameObject entity : entities) {
-            if(!entity.isDestroyed()) {
+            if (!entity.isDestroyed()) {
                 entity.render(batch);
             }
         }
@@ -107,8 +153,10 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void dispose() {
-        if (shapeRenderer != null) {
-            shapeRenderer.dispose();
+        if (batch != null) {
+            batch.dispose();
         }
+
+        AssetManager.getInstance().dispose();
     }
 }

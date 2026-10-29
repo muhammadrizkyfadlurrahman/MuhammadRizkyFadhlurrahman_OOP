@@ -1,12 +1,16 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.objects;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
+import com.MuhammadRizkyFadhlurrahman.frontend.systems.EntityFactory;
 
 public class Player extends GameObject {
     private String name;
@@ -14,6 +18,9 @@ public class Player extends GameObject {
     private int power;
     private int spellCards;
     private long score;
+
+
+    private int currentDir = 0;
 
     public Player(String name, int hp, int power, int spellCards) {
         super(280, 40, 32, 48, 200f, Color.RED);
@@ -35,18 +42,68 @@ public class Player extends GameObject {
 
     @Override
     public void update(float delta) {
+        // DIUBAH
+        super.update(delta);
+
+        float dx = 0;
+
         if (Gdx.input != null) {
-            if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            if (Gdx.input.isKeyPressed(Input.Keys.W) ||
+                Gdx.input.isKeyPressed(Input.Keys.UP)) {
                 y += speed * delta;
             }
-            if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+
+            if (Gdx.input.isKeyPressed(Input.Keys.S) ||
+                Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
                 y -= speed * delta;
             }
-            if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+
+            if (Gdx.input.isKeyPressed(Input.Keys.A) ||
+                Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
                 x -= speed * delta;
+                dx = -1;
             }
-            if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+
+            if (Gdx.input.isKeyPressed(Input.Keys.D) ||
+                Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
                 x += speed * delta;
+                dx = 1;
+            }
+        }
+
+
+        updateAnimationState(dx);
+    }
+
+
+    private void updateAnimationState(float dx) {
+        int newDir = 0;
+
+        if (dx < 0) {
+            newDir = -1;
+        } else if (dx > 0) {
+            newDir = 1;
+        }
+
+        if (newDir != currentDir) {
+            currentDir = newDir;
+
+            String key;
+
+            if (currentDir < 0) {
+                key = "player_left";
+            } else if (currentDir > 0) {
+                key = "player_right";
+            } else {
+                key = "player_idle";
+            }
+
+            Animation<TextureRegion> anim =
+                com.MuhammadRizkyFadhlurrahman.frontend.systems.AssetManager
+                    .getInstance().getAnimation(key);
+
+            if (anim != null) {
+                setAnimation(anim);
             }
         }
     }
@@ -87,14 +144,20 @@ public class Player extends GameObject {
         }
     }
 
+
     public Bullet shootBullet() {
         int damage = 10 + power;
-        System.out.println(name + " shoots bullet dealing " + damage + " DMG!");
-        return new Bullet(x + width / 2 - 4, y + height, BulletType.AMULET, damage);
+
+        return EntityFactory.createPlayerBullet(
+            x + width / 2 - 4,
+            y + height,
+            damage
+        );
     }
 
     public void collectItem(Item item) {
         if (item.isDestroyed()) return;
+
         ItemType type = item.getItemTypeEnum();
 
         if (type != null) {
@@ -125,8 +188,8 @@ public class Player extends GameObject {
         } else {
             addScore(item.getScoreValue());
             System.out.println(name + " collected " + item.getItemType() + "!");
-
         }
+
         item.destroy();
     }
 

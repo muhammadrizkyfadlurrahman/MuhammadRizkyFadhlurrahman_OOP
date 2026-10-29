@@ -1,3 +1,4 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.systems;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -12,22 +13,20 @@ import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 
 public class EntityFactory {
 
-    // Create a Player and assign the 'player_idle' animation from AssetManager
     public static Player createPlayer(float x, float y, String name, int hp, int power, int spellCards) {
-
         Player player = new Player(x, y, name, hp, power, spellCards);
 
         Animation<TextureRegion> anim =
             AssetManager.getInstance().getAnimation("player_idle");
 
         player.setAnimation(anim);
-
         return player;
     }
 
     public static Boss createBoss(float x, float y, String name, int hp) {
         Boss boss = new Boss(x, y, name, hp);
-        Animation<TextureRegion>idleAnim =
+
+        Animation<TextureRegion> idleAnim =
             AssetManager.getInstance().getAnimation("boss_idle");
 
         boss.setAnimation(idleAnim);
@@ -36,22 +35,25 @@ public class EntityFactory {
 
     public static Fairy createFairy(float x, float y, String name, int hp) {
         Fairy fairy = new Fairy(x, y, name, hp);
+
         Animation<TextureRegion> idleAnim =
             AssetManager.getInstance().getAnimation("fairy_idle_red");
+
         fairy.setAnimation(idleAnim);
         return fairy;
     }
-        public static Fairy createFairy(float x, float y, String name, int hp, String keyString) {
-            Fairy fairy = new Fairy(x, y, name, hp);
-            Animation <TextureRegion> idleAnim =
-                AssetManager.getInstance().getAnimation(keyString);
-            fairy.setAnimation(idleAnim);
-            return fairy;
-        }
 
-    // Create an Item and assign its sprite from AssetManager based on ItemType
+    public static Fairy createFairy(float x, float y, String name, int hp, String keyString) {
+        Fairy fairy = new Fairy(x, y, name, hp);
+
+        Animation<TextureRegion> idleAnim =
+            AssetManager.getInstance().getAnimation(keyString);
+
+        fairy.setAnimation(idleAnim);
+        return fairy;
+    }
+
     public static Item createItem(float x, float y, ItemType itemType) {
-
         Item item = new Item(x, y, itemType);
 
         String key = switch (itemType) {
@@ -65,20 +67,26 @@ public class EntityFactory {
             AssetManager.getInstance().getTextureRegion(key);
 
         item.setSprite(sprite);
-
         return item;
     }
 
-    // Create an enemy bullet (type DANMAKU, speed 0f, sprite bullet_danmaku)
     public static Bullet createEnemyBullet(float x, float y, int damage) {
-
         Bullet bullet = new Bullet(x, y, 0f, BulletType.DANMAKU, damage);
 
         TextureRegion sprite =
             AssetManager.getInstance().getTextureRegion("bullet_danmaku");
 
         bullet.setSprite(sprite);
+        return bullet;
+    }
 
+    public static Bullet createPlayerBullet(float x, float y, int damage) {
+        Bullet bullet = new Bullet(x, y, BulletType.AMULET, damage);
+
+        TextureRegion sprite =
+            AssetManager.getInstance().getTextureRegion("bullet_amulet");
+
+        bullet.setSprite(sprite);
         return bullet;
     }
 }
