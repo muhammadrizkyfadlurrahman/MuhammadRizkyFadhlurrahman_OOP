@@ -6,11 +6,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
-import com.MuhammadRizkyFadhlurrahman.frontend.systems.EntityFactory;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.ShootingPattern;
+import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
 
 public class Player extends GameObject {
     private String name;
@@ -19,8 +20,8 @@ public class Player extends GameObject {
     private int spellCards;
     private long score;
 
-
     private int currentDir = 0;
+    private ShootingPattern shootingPattern;
 
     public Player(String name, int hp, int power, int spellCards) {
         super(280, 40, 32, 48, 200f, Color.RED);
@@ -42,7 +43,6 @@ public class Player extends GameObject {
 
     @Override
     public void update(float delta) {
-        // DIUBAH
         super.update(delta);
 
         float dx = 0;
@@ -71,10 +71,8 @@ public class Player extends GameObject {
             }
         }
 
-
         updateAnimationState(dx);
     }
-
 
     private void updateAnimationState(float dx) {
         int newDir = 0;
@@ -125,6 +123,21 @@ public class Player extends GameObject {
     }
 
     @Override
+    public Rectangle getCoreHitbox() {
+        return new Rectangle(
+            x + (width / 2f) - 4f,
+            y + (height / 2f) - 4f,
+            8f,
+            8f
+        );
+    }
+
+    @Override
+    public Rectangle getGrazeHitbox() {
+        return new Rectangle(x, y, width, height);
+    }
+
+    @Override
     public void onCollision(Collidable other) {
         if (other instanceof Item) {
             System.out.println("Player touches items");
@@ -134,6 +147,7 @@ public class Player extends GameObject {
 
     public void shoot(Enemy target) {
         int damage = 10 + getPower();
+
         System.out.println(getName() + " shoots " + target.getName()
             + " dealing " + damage + " DMG!");
 
@@ -144,15 +158,35 @@ public class Player extends GameObject {
         }
     }
 
+    public void shootBullet(BulletManager bulletManager) {
+        if (bulletManager == null) {
+            return;
+        }
 
-    public Bullet shootBullet() {
-        int damage = 10 + power;
+        if (shootingPattern != null) {
+            shootingPattern.execute(
+                x + width / 2f - 8f,
+                y + height,
+                bulletManager,
+                true
+            );
+        } else {
+            bulletManager.spawnPlayerBullet(
+                x + width / 2f - 8f,
+                y + height,
+                0f,
+                400f,
+                10 + power
+            );
+        }
+    }
 
-        return EntityFactory.createPlayerBullet(
-            x + width / 2 - 4,
-            y + height,
-            damage
-        );
+    public ShootingPattern getShootingPattern() {
+        return shootingPattern;
+    }
+
+    public void setShootingPattern(ShootingPattern shootingPattern) {
+        this.shootingPattern = shootingPattern;
     }
 
     public void collectItem(Item item) {
