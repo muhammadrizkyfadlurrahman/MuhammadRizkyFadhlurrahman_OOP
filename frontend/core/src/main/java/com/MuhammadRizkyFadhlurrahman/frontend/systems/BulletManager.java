@@ -1,9 +1,12 @@
-
 package com.MuhammadRizkyFadhlurrahman.frontend.systems;
 
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.BulletType;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.BulletType;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 
 import java.util.Queue;
 import java.util.LinkedList;
@@ -16,70 +19,89 @@ public class BulletManager {
     private Queue<Bullet> playerBulletPool;
     private Queue<Bullet> enemyBulletPool;
 
-    // 2. Lists of Active Bullets on Screen
     private List<Bullet> activePlayerBullets;
     private List<Bullet> activeEnemyBullets;
 
     public BulletManager() {
-
         playerBulletPool = new LinkedList<>();
         enemyBulletPool = new LinkedList<>();
-
 
         activePlayerBullets = new ArrayList<>();
         activeEnemyBullets = new ArrayList<>();
     }
 
-    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage) {
-       Bullet bullet;
-       if(!playerBulletPool.isEmpty()) {
-           bullet = playerBulletPool.poll();
-       } else {
-           bullet = EntityFactory.createPlayerBullet(x,y, damage);
-       }
-       bullet.init(x,y,vx,vy, BulletType.AMULET, damage, true);
-       activePlayerBullets.add(bullet);
-       return bullet;
+    public Bullet spawnPlayerBullet(
+        float x, float y, float vx, float vy, int damage
+    ) {
+        Bullet bullet;
+
+        if (!playerBulletPool.isEmpty()) {
+            bullet = playerBulletPool.poll();
+        } else {
+            bullet = EntityFactory.createPlayerBullet(x, y, damage);
+        }
+
+        bullet.init(
+            x, y, vx, vy, BulletType.AMULET, damage, true
+        );
+
+        activePlayerBullets.add(bullet);
+
+        return bullet;
     }
 
-    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage) {
+    public Bullet spawnEnemyBullet(
+        float x, float y, float vx, float vy, int damage
+    ) {
         Bullet bullet;
+
         if (!enemyBulletPool.isEmpty()) {
             bullet = enemyBulletPool.poll();
         } else {
             bullet = EntityFactory.createEnemyBullet(x, y, damage);
         }
-        bullet.init(x, y, vx, vy, BulletType.AMULET, damage, false);
+
+        bullet.init(
+            x, y, vx, vy, BulletType.DANMAKU, damage, false
+        );
+
         activeEnemyBullets.add(bullet);
+
         return bullet;
     }
-    public void update(float delta, float screenWidth, float screenHeight) {
-        Iterator<Bullet> playerIterator = activePlayerBullets.iterator();
+
+    public void update(
+        float delta,
+        float screenWidth,
+        float screenHeight
+    ) {
+        Iterator<Bullet> playerIterator =
+            activePlayerBullets.iterator();
+
         while (playerIterator.hasNext()) {
             Bullet bullet = playerIterator.next();
+
             bullet.update(delta);
 
-            if (bullet.isDestroyed() ||
-                bullet.getX() < 0 ||
-                bullet.getX() > screenWidth ||
-                bullet.getY() < 0 ||
-                bullet.getY() > screenHeight) {
+            if (bullet.isDestroyed()
+                || bullet.isOffScreen(screenWidth, screenHeight)) {
 
                 bullet.destroy();
                 playerIterator.remove();
                 playerBulletPool.offer(bullet);
             }
         }
-        Iterator<Bullet> enemyIterator = activeEnemyBullets.iterator();
+
+        Iterator<Bullet> enemyIterator =
+            activeEnemyBullets.iterator();
+
         while (enemyIterator.hasNext()) {
             Bullet bullet = enemyIterator.next();
+
             bullet.update(delta);
 
-            if (bullet.isDestroyed() ||
-                bullet.getX() < 0 ||
-                bullet.getX() > screenWidth ||
-                bullet.getY() < 0 ||
-                bullet.getY() > screenHeight) {
+            if (bullet.isDestroyed()
+                || bullet.isOffScreen(screenWidth, screenHeight)) {
 
                 bullet.destroy();
                 enemyIterator.remove();
@@ -88,14 +110,59 @@ public class BulletManager {
         }
     }
 
-
     public void render(SpriteBatch batch) {
-        for (Bullet b : activePlayerBullets) {
-            if (!b.isDestroyed()) b.render(batch);
+        for (Bullet bullet : activePlayerBullets) {
+            if (!bullet.isDestroyed()) {
+                bullet.render(batch);
+            }
         }
 
-        for (Bullet b : activeEnemyBullets) {
-            if (!b.isDestroyed()) b.render(batch);
+        for (Bullet bullet : activeEnemyBullets) {
+            if (!bullet.isDestroyed()) {
+                bullet.render(batch);
+            }
+        }
+    }
+
+    // Clear active enemy bullets and convert them into POINT items
+    public void clearEnemyBullets(List<GameObject> entities) {
+        Iterator<Bullet> iterator =
+            activeEnemyBullets.iterator();
+
+        while (iterator.hasNext()) {
+            Bullet bullet = iterator.next();
+
+            if (entities != null) {
+                Item item = EntityFactory.createItem(
+                    bullet.getX(),
+                    bullet.getY(),
+                    ItemType.POINT
+                );
+
+                entities.add(item);
+            }
+
+            bullet.destroy();
+            iterator.remove();
+            enemyBulletPool.offer(bullet);
+        }
+    }
+
+    public void clearEnemyBullets() {
+        clearEnemyBullets(null);
+    }
+
+    // Clear all player bullets when restarting the game
+    public void clearPlayerBullets() {
+        Iterator<Bullet> pIter =
+            activePlayerBullets.iterator();
+
+        while (pIter.hasNext()) {
+            Bullet bullet = pIter.next();
+
+            bullet.destroy();
+            pIter.remove();
+            playerBulletPool.offer(bullet);
         }
     }
 

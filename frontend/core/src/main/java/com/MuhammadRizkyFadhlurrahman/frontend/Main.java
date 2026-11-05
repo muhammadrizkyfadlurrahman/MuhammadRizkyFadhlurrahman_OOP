@@ -1,4 +1,3 @@
-
 package com.MuhammadRizkyFadhlurrahman.frontend;
 
 import com.badlogic.gdx.ApplicationAdapter;
@@ -6,15 +5,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Boss;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Fairy;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.AssetManager;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.EntityFactory;
+import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,6 +31,8 @@ public class Main extends ApplicationAdapter {
     private Item pointItem;
     private List<GameObject> entities;
 
+    private BulletManager bulletManager;
+
     @Override
     public void create() {
         batch = new SpriteBatch();
@@ -39,31 +41,30 @@ public class Main extends ApplicationAdapter {
 
         AssetManager.getInstance().init();
 
+        bulletManager = new BulletManager();
+
         player = EntityFactory.createPlayer(
-            280, 40, "Reimu Hakurei", 100, 15, 3
+            200, 50, "Reimu Hakurei", 100, 15, 3
         );
 
-        Fairy redFairy = EntityFactory.createFairy(
+        fairy.add(EntityFactory.createFairy(
             150, 380, "Red Fairy", 20
-        );
+        ));
 
-        Fairy blueFairy = EntityFactory.createFairy(
+        fairy.add(EntityFactory.createFairy(
             250, 380, "Blue Fairy", 20, "fairy_idle_blue"
-        );
-
-        fairy.add(redFairy);
-        fairy.add(blueFairy);
+        ));
 
         boss = EntityFactory.createBoss(
-            380, 400, "Rumia", 150
+            250, 400, "Rumia", 150
         );
 
         powerItem = EntityFactory.createItem(
-            200, 450, ItemType.POWER
+            180, 450, ItemType.POWER
         );
 
         pointItem = EntityFactory.createItem(
-            320, 480, ItemType.POINT
+            220, 480, ItemType.POINT
         );
 
         entities.add(player);
@@ -74,9 +75,11 @@ public class Main extends ApplicationAdapter {
     }
 
     public <T extends GameObject> void updateAndClean(
-        List<T> list, float delta,
-        float screenWidth, float screenHeight) {
-
+        List<T> list,
+        float delta,
+        float screenWidth,
+        float screenHeight
+    ) {
         Iterator<T> iterator = list.iterator();
 
         while (iterator.hasNext()) {
@@ -91,6 +94,45 @@ public class Main extends ApplicationAdapter {
         }
     }
 
+    private void restartGame() {
+        System.out.println("[Main] Restarting game...");
+
+        entities.clear();
+
+        bulletManager.clearEnemyBullets();
+        bulletManager.clearPlayerBullets();
+
+        entities.add(player);
+        player.resetGame();
+
+        fairy.clear();
+
+        fairy.add(EntityFactory.createFairy(
+            150, 380, "Red Fairy", 20
+        ));
+
+        fairy.add(EntityFactory.createFairy(
+            250, 380, "Blue Fairy", 20, "fairy_idle_blue"
+        ));
+
+        boss = EntityFactory.createBoss(
+            250, 400, "Rumia", 150
+        );
+
+        powerItem = EntityFactory.createItem(
+            180, 450, ItemType.POWER
+        );
+
+        pointItem = EntityFactory.createItem(
+            220, 480, ItemType.POINT
+        );
+
+        entities.addAll(fairy);
+        entities.add(boss);
+        entities.add(powerItem);
+        entities.add(pointItem);
+    }
+
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
@@ -100,43 +142,14 @@ public class Main extends ApplicationAdapter {
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            Bullet bullet = player.shootBullet();
-            entities.add(bullet);
+            player.shootBullet(bulletManager);
         }
 
-        for (int i = 0; i < entities.size(); i++) {
-            GameObject a = entities.get(i);
-
-            if (a.isDestroyed()) {
-                continue;
-            }
-
-            for (int j = i + 1; j < entities.size(); j++) {
-                GameObject b = entities.get(j);
-
-                if (b.isDestroyed()) {
-                    continue;
-                }
-
-                if (a.getCoreHitbox().overlaps(b.getCoreHitbox())) {
-                    a.onCollision(b);
-                    b.onCollision(a);
-                }
-            }
-        }
-
-        Iterator<GameObject> iterator = entities.iterator();
-
-        while (iterator.hasNext()) {
-            GameObject entity = iterator.next();
-
-            if (entity.isDestroyed()
-                || entity.isOffScreen(
-                Gdx.graphics.getWidth(),
-                Gdx.graphics.getHeight())) {
-                iterator.remove();
-            }
-        }
+        bulletManager.update(
+            delta,
+            Gdx.graphics.getWidth(),
+            Gdx.graphics.getHeight()
+        );
 
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1f);
 
@@ -147,6 +160,8 @@ public class Main extends ApplicationAdapter {
                 entity.render(batch);
             }
         }
+
+        bulletManager.render(batch);
 
         batch.end();
     }
