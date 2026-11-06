@@ -1,5 +1,6 @@
 package com.MuhammadRizkyFadhlurrahman.frontend.objects;
 
+import com.MuhammadRizkyFadhlurrahman.frontend.observers.GameObserver;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -14,6 +15,7 @@ import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.ShootingPattern;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class Player extends GameObject {
 
@@ -23,6 +25,7 @@ public class Player extends GameObject {
     private int power;
     private int spellCards;
     private long score;
+    private List<GameObserver> observers = new ArrayList<>();
 
     private int grazeCount = 0;
     private boolean focused = false;
@@ -41,6 +44,50 @@ public class Player extends GameObject {
         this.power = power;
         this.spellCards = spellCards;
         this.score = 0;
+    }
+    public void registerObserver(GameObserver observer) {
+        if (observer != null && !observers.contains(observer)) {
+            observers.add(observer);
+            observer.onScoreChanged(score);
+            observer.onHpChanged(hp);
+            observer.onLivesChanged(lives);
+            observer.onSpellCardsChanged(spellCards);
+            observer.onPowerChanged(power);
+            observer.onGrazeChanged(grazeCount);
+        }
+    }
+    public void removeObserver(GameObserver observer) {
+        observers.remove(observer);
+    }
+    private void notifyScoreChanged() {
+        for (GameObserver obs : observers) {
+            obs.onScoreChanged(score);
+        }
+    }
+        private void notifyHpChanged(){
+            for (GameObserver obs : observers) {
+                obs.onHpChanged(hp);
+            }
+        }
+        private void notifyLivesChanged(){
+        for (GameObserver obs : observers) {
+            obs.onLivesChanged(lives);
+        }
+    }
+    private void notifySpellCardsChanged() {
+        for (GameObserver obs : observers) {
+            obs.onSpellCardsChanged(power);
+        }
+    }
+    private void notifyPowerChanged() {
+        for (GameObserver obs : observers) {
+            obs.onPowerChanged(power);
+        }
+    }
+    private void notifyGrazeChanged(){
+        for (GameObserver obs : observers) {
+            obs.onGrazeChanged(grazeCount);
+        }
     }
 
     public Player(
@@ -166,6 +213,7 @@ public class Player extends GameObject {
     ) {
         if (spellCards > 0) {
             spellCards--;
+            notifySpellCardsChanged();
 
             invulnerableTimer = 5.0f;
 
@@ -188,6 +236,7 @@ public class Player extends GameObject {
     public void addGraze() {
         this.grazeCount++;
         addScore(50);
+        notifyGrazeChanged();
     }
 
     @Override
@@ -278,6 +327,7 @@ public class Player extends GameObject {
         if (this.hp < 0) {
             this.hp = 0;
         }
+        notifyHpChanged();
 
         System.out.println(
             name + " took " + damage
@@ -298,6 +348,7 @@ public class Player extends GameObject {
         List<GameObject> entities
     ) {
         this.lives--;
+        notifyLivesChanged();
 
         if (bulletManager != null) {
             bulletManager.clearEnemyBullets();
@@ -334,6 +385,10 @@ public class Player extends GameObject {
         this.invulnerableTimer = 3.0f;
         this.power = Math.max(10, this.power - 16);
         this.spellCards = 3;
+
+        notifyHpChanged();
+        notifyPowerChanged();
+        notifySpellCardsChanged();
     }
 
     public void resetGame() {
@@ -347,7 +402,14 @@ public class Player extends GameObject {
         this.x = 200;
         this.y = 50;
         this.invulnerableTimer = 3.0f;
+        notifyLivesChanged();
+        notifyHpChanged();
+        notifyPowerChanged();
+        notifySpellCardsChanged();
+        notifyScoreChanged();
+        notifyGrazeChanged();
     }
+
 
     public void collectItem(Item item) {
         if (item.isDestroyed()) {
@@ -369,6 +431,7 @@ public class Player extends GameObject {
 
                 case POINT -> {
                     addScore(item.getScoreValue());
+                    notifyPowerChanged();
 
                     System.out.println(
                         name + " collected POINT item!"
@@ -378,6 +441,7 @@ public class Player extends GameObject {
                 case BOMB -> {
                     this.spellCards++;
                     addScore(item.getScoreValue());
+                    notifySpellCardsChanged();
 
                     System.out.println(
                         name + " collected BOMB item! SpellCards: " + spellCards
@@ -388,6 +452,8 @@ public class Player extends GameObject {
                     this.lives++;
                     this.hp = 100;
                     addScore(item.getScoreValue());
+                    notifyLivesChanged();
+                    notifyHpChanged();
 
                     System.out.println(
                         name + " collected LIFE item! Remaining Lives: " + lives
@@ -408,6 +474,7 @@ public class Player extends GameObject {
     public void addScore(long points) {
         if (points > 0) {
             this.score += points;
+            notifyScoreChanged();
 
             System.out.println(
                 name + " gained " + points
@@ -438,6 +505,7 @@ public class Player extends GameObject {
 
     public void setLives(int lives) {
         this.lives = lives;
+        notifyLivesChanged();
     }
 
     public boolean isFocused() {
@@ -489,6 +557,7 @@ public class Player extends GameObject {
 
     public void setHp(int hp) {
         this.hp = Math.max(0, hp);
+        notifyHpChanged();
     }
 
     public int getPower() {
@@ -497,6 +566,7 @@ public class Player extends GameObject {
 
     public void setPower(int power) {
         this.power = power;
+        notifyPowerChanged();
     }
 
     public int getSpellCards() {
@@ -505,6 +575,7 @@ public class Player extends GameObject {
 
     public void setSpellCards(int spellCards) {
         this.spellCards = spellCards;
+        notifySpellCardsChanged();
     }
 
     public long getScore() {
