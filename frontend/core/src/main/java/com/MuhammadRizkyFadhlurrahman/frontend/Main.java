@@ -1,3 +1,4 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend;
 
 import com.badlogic.gdx.ApplicationAdapter;
@@ -6,6 +7,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import com.MuhammadRizkyFadhlurrahman.frontend.commands.Command;
+import com.MuhammadRizkyFadhlurrahman.frontend.commands.InputHandler;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Boss;
@@ -15,6 +18,8 @@ import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.AssetManager;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.EntityFactory;
 import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
+import com.MuhammadRizkyFadhlurrahman.frontend.systems.CollisionReferee;
+import com.MuhammadRizkyFadhlurrahman.frontend.ui.GameHUD;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,6 +37,12 @@ public class Main extends ApplicationAdapter {
     private List<GameObject> entities;
 
     private BulletManager bulletManager;
+    private CollisionReferee collisionReferee;
+
+    private InputHandler inputHandler;
+    private GameHUD gameHUD;
+
+    private float enemyShootTimer = 0f;
 
     @Override
     public void create() {
@@ -42,10 +53,17 @@ public class Main extends ApplicationAdapter {
         AssetManager.getInstance().init();
 
         bulletManager = new BulletManager();
+        collisionReferee = new CollisionReferee();
+        inputHandler = new InputHandler();
 
         player = EntityFactory.createPlayer(
             200, 50, "Reimu Hakurei", 100, 15, 3
         );
+
+        gameHUD = new GameHUD();
+        player.registerObserver(gameHUD);
+
+        inputHandler.setEntities(entities);
 
         fairy.add(EntityFactory.createFairy(
             150, 380, "Red Fairy", 20
@@ -133,25 +151,50 @@ public class Main extends ApplicationAdapter {
         entities.add(pointItem);
     }
 
+    private void updateEnemyScheduler(float delta) {
+        enemyShootTimer += delta;
+
+        if (enemyShootTimer >= 1.5f) {
+            boss.shootBullet(bulletManager);
+            enemyShootTimer = 0f;
+        }
+    }
+
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
 
-        for (GameObject entity : entities) {
-            entity.update(delta);
+
+        if (Gdx.input != null
+            && Gdx.input.isKeyJustPressed(Input.Keys.R)
+            && player.isGameOver()) {
+            restartGame();
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            player.shootBullet(bulletManager);
+
+        List<Command> commands = inputHandler.handleInput(delta);
+
+        for (Command command : commands) {
+            command.execute(player, bulletManager);
         }
 
-        bulletManager.update(
-            delta,
-            Gdx.graphics.getWidth(),
-            Gdx.graphics.getHeight()
+
+        updateEnemyScheduler(delta);
+
+
+        updateAndClean(entities, delta, 416, 560);
+
+
+        bulletManager.update(delta, 416, 560);
+
+
+        collisionReferee.resolveCollisions(
+            player, entities, bulletManager
         );
 
+
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1f);
+
 
         batch.begin();
 
@@ -162,14 +205,23 @@ public class Main extends ApplicationAdapter {
         }
 
         bulletManager.render(batch);
+        gameHUD.render(batch);
 
         batch.end();
+
+
+        gameHUD.renderBackground();
+        player.renderFocusIndicator(gameHUD.getShapeRenderer());
     }
 
     @Override
     public void dispose() {
         if (batch != null) {
             batch.dispose();
+        }
+
+        if (gameHUD != null) {
+            gameHUD.dispose();
         }
 
         AssetManager.getInstance().dispose();

@@ -1,3 +1,4 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.systems;
 
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
@@ -18,7 +19,7 @@ public class CollisionReferee {
 
         List<GameObject> newDrops = new ArrayList<>();
 
-        // 1. Evaluate Player Bullets vs Enemies
+
         for (Bullet bullet : bulletManager.getActivePlayerBullets()) {
 
             if (bullet.isDestroyed()) continue;
@@ -50,37 +51,49 @@ public class CollisionReferee {
             }
         }
 
-        // 2. Evaluate Enemy Bullets vs Player
+
         for (Bullet bullet : bulletManager.getActiveEnemyBullets()) {
 
             if (bullet.isDestroyed()) continue;
 
             if (!player.isDestroyed()) {
 
-                // PRIORITY 1: Core Hit
+
                 if (bullet.getCoreHitbox().overlaps(player.getCoreHitbox())) {
 
-                    player.takeDamage(bullet.getDamage());
-                    bullet.destroy();
+                    if (!player.isInvulnerable()) {
+                        System.out.println(
+                            "[CollisionReferee] CORE HIT! Enemy Bullet hit "
+                                + player.getName() + " for " + bullet.getDamage() + " DMG!"
+                        );
 
+                        player.takeDamage(100, bulletManager, entities);
+                        bullet.destroy();
+                        break;
+                    }
                 }
 
-                // PRIORITY 2: Graze Hit
+
                 else if (!bullet.hasBeenGrazed()
                     && bullet.getCoreHitbox().overlaps(player.getGrazeHitbox())) {
 
                     bullet.setGrazed(true);
-                    player.addScore(50);
+                    player.addGraze();
+
+                    System.out.println(
+                        "[CollisionReferee] GRAZE! "
+                            + player.getName() + " grazed an enemy bullet (+50 pts)!"
+                    );
                 }
             }
         }
 
-        // 3. Evaluate Player vs Items and Physical Enemy Contact
+
         for (GameObject entity : entities) {
 
             if (entity.isDestroyed()) continue;
 
-            // CASE A: Item Collection
+
             if (entity instanceof Item item) {
 
                 if (item.getCoreHitbox().overlaps(player.getCoreHitbox())
@@ -90,11 +103,18 @@ public class CollisionReferee {
                 }
             }
 
-            // CASE B: Physical Contact with Enemy
+
             else if (entity instanceof Enemy enemy) {
 
-                if (player.getCoreHitbox().overlaps(enemy.getCoreHitbox())) {
-                    player.takeDamage(10);
+                if (!player.isInvulnerable()
+                    && player.getCoreHitbox().overlaps(enemy.getCoreHitbox())) {
+
+                    System.out.println(
+                        "[CollisionReferee] CORE COLLISION! Player collided with "
+                            + enemy.getName() + "!"
+                    );
+
+                    player.takeDamage(100, bulletManager, entities);
                 }
             }
         }

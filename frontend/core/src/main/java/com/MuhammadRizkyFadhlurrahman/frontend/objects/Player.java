@@ -45,6 +45,7 @@ public class Player extends GameObject {
         this.spellCards = spellCards;
         this.score = 0;
     }
+
     public void registerObserver(GameObserver observer) {
         if (observer != null && !observers.contains(observer)) {
             observers.add(observer);
@@ -56,35 +57,42 @@ public class Player extends GameObject {
             observer.onGrazeChanged(grazeCount);
         }
     }
+
     public void removeObserver(GameObserver observer) {
         observers.remove(observer);
     }
+
     private void notifyScoreChanged() {
         for (GameObserver obs : observers) {
             obs.onScoreChanged(score);
         }
     }
-        private void notifyHpChanged(){
-            for (GameObserver obs : observers) {
-                obs.onHpChanged(hp);
-            }
+
+    private void notifyHpChanged() {
+        for (GameObserver obs : observers) {
+            obs.onHpChanged(hp);
         }
-        private void notifyLivesChanged(){
+    }
+
+    private void notifyLivesChanged() {
         for (GameObserver obs : observers) {
             obs.onLivesChanged(lives);
         }
     }
+
     private void notifySpellCardsChanged() {
         for (GameObserver obs : observers) {
-            obs.onSpellCardsChanged(power);
+            obs.onSpellCardsChanged(spellCards);
         }
     }
+
     private void notifyPowerChanged() {
         for (GameObserver obs : observers) {
             obs.onPowerChanged(power);
         }
     }
-    private void notifyGrazeChanged(){
+
+    private void notifyGrazeChanged() {
         for (GameObserver obs : observers) {
             obs.onGrazeChanged(grazeCount);
         }
@@ -327,6 +335,7 @@ public class Player extends GameObject {
         if (this.hp < 0) {
             this.hp = 0;
         }
+
         notifyHpChanged();
 
         System.out.println(
@@ -402,6 +411,7 @@ public class Player extends GameObject {
         this.x = 200;
         this.y = 50;
         this.invulnerableTimer = 3.0f;
+
         notifyLivesChanged();
         notifyHpChanged();
         notifyPowerChanged();
@@ -409,7 +419,6 @@ public class Player extends GameObject {
         notifyScoreChanged();
         notifyGrazeChanged();
     }
-
 
     public void collectItem(Item item) {
         if (item.isDestroyed()) {
@@ -422,6 +431,7 @@ public class Player extends GameObject {
             switch (type) {
                 case POWER -> {
                     this.power += type.getPowerBonus();
+                    notifyPowerChanged();
                     addScore(item.getScoreValue());
 
                     System.out.println(
@@ -431,7 +441,6 @@ public class Player extends GameObject {
 
                 case POINT -> {
                     addScore(item.getScoreValue());
-                    notifyPowerChanged();
 
                     System.out.println(
                         name + " collected POINT item!"
