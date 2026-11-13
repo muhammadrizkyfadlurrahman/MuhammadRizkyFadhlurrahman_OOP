@@ -70,7 +70,8 @@ public class EntityFactory {
         return item;
     }
 
-    public static Bullet createEnemyBullet(float x, float y, int damage) {
+    public static Bullet createEnemyBullet(float x, float y, int damage, String spriteKey) {
+        String key = (spriteKey != null) ? spriteKey : "bullet_danmaku";
         Bullet bullet = new Bullet(x, y, 0f, BulletType.DANMAKU, damage);
 
         TextureRegion sprite =
@@ -79,7 +80,9 @@ public class EntityFactory {
         bullet.setSprite(sprite);
         return bullet;
     }
-
+    public static Bullet createEnemyBullet(float x, float y, int damage) {
+        return createEnemyBullet(x,y, damage, "bullet_danmaku");
+    }
     public static Bullet createPlayerBullet(float x, float y, int damage) {
         Bullet bullet = new Bullet(x, y, BulletType.AMULET, damage);
 

@@ -1,3 +1,4 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.objects;
 
 import com.MuhammadRizkyFadhlurrahman.frontend.observers.GameObserver;
@@ -17,7 +18,7 @@ import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
 import java.util.List;
 import java.util.ArrayList;
 
-public class Player extends GameObject {
+public class Player extends EntityShooter {
 
     private String name;
     private int hp;
@@ -29,12 +30,18 @@ public class Player extends GameObject {
 
     private int grazeCount = 0;
     private boolean focused = false;
-    private float shootTimer = 0.1f;
-    private float shootCooldown = 0.1f;
-    private float invulnerableTimer = 0f;
 
-    private int currentDir = 0;
-    private ShootingPattern shootingPattern;
+    private float shootTimer = shootCooldown;
+    private float shootCooldown = 5f  / 60f;\
+
+    private float homingCooldown = 30f / 60f;
+    private float homingShootTimer = homingCooldown
+    private float invulnerableTimer = 0f;
+    private ShootingPattern mainShootingPattern;
+    private ShootingPattern sideShootingPattern;
+    private float invulnerableTimer = of;
+
+
 
     public Player(String name, int hp, int power, int spellCards) {
         super(280, 40, 32, 48, 200f, Color.RED);
@@ -188,6 +195,7 @@ public class Player extends GameObject {
         }
     }
 
+    @Override
     public void shootBullet(BulletManager bulletManager) {
         if (bulletManager == null) {
             return;

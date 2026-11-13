@@ -1,3 +1,4 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.objects;
 
 import com.badlogic.gdx.graphics.Color;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 public abstract class GameObject implements Collidable {
+
     protected float x;
     protected float y;
     protected float width;
@@ -21,7 +23,8 @@ public abstract class GameObject implements Collidable {
     protected Animation<TextureRegion> animation;
     protected float stateTime = 0f;
 
-    public GameObject(float x, float y, float width, float height, float speed, Color color) {
+    public GameObject(float x, float y, float width, float height,
+                      float speed, Color color) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -44,7 +47,8 @@ public abstract class GameObject implements Collidable {
     public void render(SpriteBatch batch) {
         if (batch != null && active) {
             if (animation != null) {
-                TextureRegion currentFrame = animation.getKeyFrame(stateTime, true);
+                TextureRegion currentFrame =
+                    animation.getKeyFrame(stateTime, true);
                 batch.draw(currentFrame, x, y, width, height);
             } else if (sprite != null) {
                 batch.draw(sprite, x, y, width, height);
@@ -59,13 +63,12 @@ public abstract class GameObject implements Collidable {
 
     @Override
     public Rectangle getGrazeHitbox() {
-        // Graze hitbox is slightly larger than core hitbox (+10px padding)
         return new Rectangle(x - 10, y - 10, width + 20, height + 20);
     }
 
     @Override
     public void onCollision(Collidable other) {
-        // Base collision handler (can be overridden by subclasses)
+        // Base collision handler
     }
 
     public boolean isDestroyed() {
@@ -81,30 +84,53 @@ public abstract class GameObject implements Collidable {
             y < -50 || y > screenHeight + 50;
     }
 
-    // Encapsulation: Getters and Setters
-    public float getX() { return x; }
-    public void setX(float x) { this.x = x; }
+    public float getX() {
+        return x;
+    }
 
-    public float getY() { return y; }
-    public void setY(float y) { this.y = y; }
+    public void setX(float x) {
+        this.x = x;
+    }
 
-    public float getWidth() { return width; }
+    public float getY() {
+        return y;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
     public void setWidth(float width) {
         if (width > 0) this.width = width;
     }
 
-    public float getHeight() { return height; }
+    public float getHeight() {
+        return height;
+    }
+
     public void setHeight(float height) {
         if (height > 0) this.height = height;
     }
 
-    public float getSpeed() { return speed; }
+    public float getSpeed() {
+        return speed;
+    }
+
     public void setSpeed(float speed) {
         if (speed >= 0) this.speed = speed;
     }
 
-    public Color getColor() { return color; }
-    public void setColor(Color color) { this.color = color; }
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
 
     public TextureRegion getSprite() {
         return sprite;
@@ -120,5 +146,17 @@ public abstract class GameObject implements Collidable {
 
     public void setAnimation(Animation<TextureRegion> animation) {
         this.animation = animation;
+    }
+
+    public float getStateTime() {
+        return stateTime;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setStateTime(float stateTime) {
+        this.stateTime = stateTime;
     }
 }

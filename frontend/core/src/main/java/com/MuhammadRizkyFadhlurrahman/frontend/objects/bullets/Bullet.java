@@ -1,3 +1,4 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets;
 
 import com.badlogic.gdx.graphics.Color;
@@ -6,8 +7,10 @@ import com.MuhammadRizkyFadhlurrahman.frontend.objects.BulletType;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Collidable;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.bulletStrategy.BulletMovementPattern;
 
 public class Bullet extends GameObject {
+
     private BulletType bulletType;
     private int damage;
 
@@ -16,6 +19,9 @@ public class Bullet extends GameObject {
     private float angle = 90f;
     private boolean isPlayerBullet;
     private boolean grazed;
+
+    // Module 9 - Movement Strategy
+    private BulletMovementPattern movementPattern;
 
     public Bullet(float x, float y, BulletType bulletType, int damage) {
         super(x, y, 16, 16, 400f, Color.YELLOW);
@@ -52,13 +58,21 @@ public class Bullet extends GameObject {
         this.isPlayerBullet = isPlayerBullet;
         this.grazed = false;
         this.active = true;
+
+        // Reset movement strategy when bullet is recycled
+        this.movementPattern = null;
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
-        x += vx * delta;
-        y += vy * delta;
+
+        if (movementPattern != null) {
+            movementPattern.move(this, delta);
+        } else {
+            x += vx * delta;
+            y += vy * delta;
+        }
     }
 
     @Override
@@ -123,5 +137,13 @@ public class Bullet extends GameObject {
 
     public void setGrazed(boolean grazed) {
         this.grazed = grazed;
+    }
+
+    public BulletMovementPattern getMovementPattern() {
+        return movementPattern;
+    }
+
+    public void setMovementPattern(BulletMovementPattern movementPattern) {
+        this.movementPattern = movementPattern;
     }
 }

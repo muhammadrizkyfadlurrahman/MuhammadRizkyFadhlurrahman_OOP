@@ -1,10 +1,14 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies;
 
 import com.badlogic.gdx.graphics.Color;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.EntityShooter;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.ShootingPattern;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.entityStrategy.EntityMovementPattern;
 
-public class Enemy extends GameObject {
+public class Enemy extends EntityShooter {
+
     protected String name;
     protected int hp;
     protected int maxHp;
@@ -21,6 +25,20 @@ public class Enemy extends GameObject {
     public Enemy(float x, float y, float width, float height, Color color,
                  String name, int hp, long scoreValue) {
         super(x, y, width, height, 0, color);
+        this.name = name;
+        this.hp = hp;
+        this.maxHp = hp;
+        this.scoreValue = scoreValue;
+    }
+
+    // Constructor Injection - Problem 3
+    public Enemy(float x, float y, float width, float height, Color color,
+                 String name, int hp, long scoreValue,
+                 ShootingPattern shootingPattern,
+                 EntityMovementPattern movementPattern) {
+
+        super(x, y, width, height, 0, color, shootingPattern, movementPattern);
+
         this.name = name;
         this.hp = hp;
         this.maxHp = hp;
