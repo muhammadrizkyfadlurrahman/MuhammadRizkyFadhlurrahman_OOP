@@ -2,13 +2,16 @@
 package com.MuhammadRizkyFadhlurrahman.frontend.systems;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.bulletStrategy.HomingBulletMovement;
 
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.BulletType;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets.Bullet;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
+
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.bulletStrategy.HomingBulletMovement;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.bulletStrategy.FantasySealMovement;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.shootingStrategy.RingShot;
 
 import java.util.Queue;
 import java.util.LinkedList;
@@ -24,7 +27,7 @@ public class BulletManager {
     private List<Bullet> activePlayerBullets;
     private List<Bullet> activeEnemyBullets;
 
-    private List <GameObject> entities;
+    private List<GameObject> entities;
 
     public BulletManager() {
         playerBulletPool = new LinkedList<>();
@@ -34,124 +37,91 @@ public class BulletManager {
         activeEnemyBullets = new ArrayList<>();
     }
 
-    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage, String spriteKey) {
+    public Bullet spawnPlayerBullet(
+        float x, float y, float vx, float vy,
+        int damage, String spriteKey
+    ) {
         String key = (spriteKey != null) ? spriteKey : "bullet_amulet";
         Bullet bullet;
 
         if (!playerBulletPool.isEmpty()) {
             bullet = playerBulletPool.poll();
-            bullet.init(x,y, vx, vy, BulletType.AMULET, damage, true);
+            bullet.init(x, y, vx, vy, BulletType.AMULET, damage, true);
             bullet.setSprite(AssetManager.getInstance().getTextureRegion(key));
-
         } else {
             bullet = EntityFactory.createPlayerBullet(x, y, damage, key);
-            bullet.init(x,y, vx, vy, BulletType.AMULET, damage, true);
+            bullet.init(x, y, vx, vy, BulletType.AMULET, damage, true);
         }
 
-        bullet.init(
-            x, y, vx, vy, BulletType.AMULET, damage, true
-        );
-
         activePlayerBullets.add(bullet);
-
         return bullet;
     }
-    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage) {
+
+    public Bullet spawnPlayerBullet(
+        float x, float y, float vx, float vy, int damage
+    ) {
         return spawnPlayerBullet(x, y, vx, vy, damage, "bullet_amulet");
     }
 
-    // Spawn player bullet with custom sprite
-    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage, String spriteKey) { // Add String spriteKey as a parameter
-        String key = (spriteKey != null) ? spriteKey : "bullet_danmaku"; // Add local String variable key
+    public Bullet spawnEnemyBullet(
+        float x, float y, float vx, float vy,
+        int damage, String spriteKey
+    ) {
+        String key = (spriteKey != null) ? spriteKey : "bullet_danmaku";
         Bullet bullet;
+
         if (!enemyBulletPool.isEmpty()) {
             bullet = enemyBulletPool.poll();
             bullet.init(x, y, vx, vy, BulletType.DANMAKU, damage, false);
-            bullet.setSprite(AssetManager.getInstance().getTextureRegion(key)); // Add setSprite using key
+            bullet.setSprite(AssetManager.getInstance().getTextureRegion(key));
         } else {
-            bullet = EntityFactory.createEnemyBullet(x, y, damage, key); // Add key as 4th argument
+            bullet = EntityFactory.createEnemyBullet(x, y, damage, key);
             bullet.init(x, y, vx, vy, BulletType.DANMAKU, damage, false);
         }
+
         activeEnemyBullets.add(bullet);
         return bullet;
     }
-    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage) {
-        return spawnEnemyBullet(x, y, vx, vy, damage, "bullet_danmaku");
-    }
-
-
-
 
     public Bullet spawnEnemyBullet(
         float x, float y, float vx, float vy, int damage
     ) {
-        Bullet bullet;
-
-        if (!enemyBulletPool.isEmpty()) {
-            bullet = enemyBulletPool.poll();
-        } else {
-            bullet = EntityFactory.createEnemyBullet(x, y, damage);
-        }
-
-        bullet.init(
-            x, y, vx, vy, BulletType.DANMAKU, damage, false
-        );
-
-        activeEnemyBullets.add(bullet);
-
-        return bullet;
+        return spawnEnemyBullet(x, y, vx, vy, damage, "bullet_danmaku");
     }
 
-    // Spawn enemy bullet with custom sprite
-    public Bullet spawnEnemyBullet(
-        float x, float y, float vx, float vy, int damage, String spriteKey
-    ) {
-        Bullet bullet = spawnEnemyBullet(x, y, vx, vy, damage);
+    public void update(float delta, float screenWidth, float screenHeight) {
+        Iterator<Bullet> pIter = activePlayerBullets.iterator();
 
-        if (spriteKey != null) {
-            bullet.setSprite(
-                AssetManager.getInstance().getTextureRegion(spriteKey)
-            );
-        }
+        while (pIter.hasNext()) {
+            Bullet bullet = pIter.next();
 
-        return bullet;
-    }
+            if (entities != null &&
+                bullet.getMovementPattern() instanceof HomingBulletMovement homing &&
+                homing.getEntities() == null) {
 
-
-    public void update(
-        float delta,
-        float screenWidth,
-        float screenHeight
-    ) {
-        Iterator<Bullet> playerIterator =
-            activePlayerBullets.iterator();
-
-        while (playerIterator.hasNext()) {
-            Bullet bullet = playerIterator.next();
-            if (entities != null && bullet.getMovementPattern() instanceof HomingBulletMovement homing && homing.getEntities() == null) {
                 homing.setEntities(entities);
             }
+
             bullet.update(delta);
 
-            if (bullet.isDestroyed()
-                || bullet.isOffScreen(screenWidth, screenHeight)) {
+            if (bullet.isDestroyed() ||
+                bullet.isOffScreen(screenWidth, screenHeight)) {
 
                 bullet.destroy();
-                playerIterator.remove();
+                pIter.remove();
                 playerBulletPool.offer(bullet);
             }
         }
 
-        Iterator<Bullet> enemyIterator =
-            activeEnemyBullets.iterator();
+        Iterator<Bullet> enemyIterator = activeEnemyBullets.iterator();
 
         while (enemyIterator.hasNext()) {
             Bullet bullet = enemyIterator.next();
 
             bullet.update(delta);
 
-            if (bullet.isDestroyed()
-                || bullet.isOffScreen(screenWidth, screenHeight)) {
+            if (bullet.isDestroyed() ||
+                bullet.isOffScreen(screenWidth, screenHeight)) {
 
                 bullet.destroy();
                 enemyIterator.remove();
@@ -174,10 +144,8 @@ public class BulletManager {
         }
     }
 
-    // Clear active enemy bullets and convert them into POINT items
     public void clearEnemyBullets(List<GameObject> entities) {
-        Iterator<Bullet> iterator =
-            activeEnemyBullets.iterator();
+        Iterator<Bullet> iterator = activeEnemyBullets.iterator();
 
         while (iterator.hasNext()) {
             Bullet bullet = iterator.next();
@@ -202,10 +170,8 @@ public class BulletManager {
         clearEnemyBullets(null);
     }
 
-    // Clear all player bullets when restarting the game
     public void clearPlayerBullets() {
-        Iterator<Bullet> pIter =
-            activePlayerBullets.iterator();
+        Iterator<Bullet> pIter = activePlayerBullets.iterator();
 
         while (pIter.hasNext()) {
             Bullet bullet = pIter.next();
@@ -214,6 +180,41 @@ public class BulletManager {
             pIter.remove();
             playerBulletPool.offer(bullet);
         }
+    }
+
+    // Fantasy Seal: RingShot + FantasySealMovement
+    public void spawnBombOrbs(
+        float originX,
+        float originY,
+        GameObject targetEnemy,
+        List<GameObject> entities
+    ) {
+        int orbCount = 8;
+        int orbDamage = 35;
+
+        List<GameObject> targetEntities =
+            (entities != null) ? entities : this.entities;
+
+        RingShot bombPattern = new RingShot(
+            150f,
+            orbCount,
+            orbDamage,
+            new FantasySealMovement(targetEnemy, targetEntities)
+        );
+
+        bombPattern.execute(originX, originY, this, true);
+
+        System.out.println(
+            "[BulletManager] Spawned 8 Bomb Spirit Orbs via RingShot composed with FantasySealMovement!"
+        );
+    }
+
+    public void spawnBombOrbs(
+        float originX,
+        float originY,
+        GameObject targetEnemy
+    ) {
+        spawnBombOrbs(originX, originY, targetEnemy, null);
     }
 
     public List<Bullet> getActivePlayerBullets() {
@@ -230,5 +231,13 @@ public class BulletManager {
 
     public int getEnemyPoolSize() {
         return enemyBulletPool.size();
+    }
+
+    public List<GameObject> getEntities() {
+        return entities;
+    }
+
+    public void setEntities(List<GameObject> entities) {
+        this.entities = entities;
     }
 }

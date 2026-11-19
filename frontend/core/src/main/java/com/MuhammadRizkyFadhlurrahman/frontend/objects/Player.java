@@ -2,18 +2,24 @@
 package com.MuhammadRizkyFadhlurrahman.frontend.objects;
 
 import com.MuhammadRizkyFadhlurrahman.frontend.observers.GameObserver;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.ShootingPattern;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.entityStrategy.FixedMovement;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.shootingStrategy.FrontShot;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.shootingStrategy.SpreadShot;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.shootingStrategy.SideShot;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.shootingStrategy.CompositeShootingPattern;
+import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.bulletStrategy.HomingBulletMovement;
+import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.Item;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.items.ItemType;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.ShootingPattern;
-import com.MuhammadRizkyFadhlurrahman.frontend.systems.BulletManager;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -26,31 +32,51 @@ public class Player extends EntityShooter {
     private int power;
     private int spellCards;
     private long score;
+
     private List<GameObserver> observers = new ArrayList<>();
 
     private int grazeCount = 0;
     private boolean focused = false;
+    private int currentDir = 0;
 
+    private float shootCooldown = 5f / 60f;
     private float shootTimer = shootCooldown;
-    private float shootCooldown = 5f  / 60f;\
 
     private float homingCooldown = 30f / 60f;
-    private float homingShootTimer = homingCooldown
+    private float homingShootTimer = homingCooldown;
+
     private float invulnerableTimer = 0f;
+
     private ShootingPattern mainShootingPattern;
     private ShootingPattern sideShootingPattern;
-    private float invulnerableTimer = of;
-
-
 
     public Player(String name, int hp, int power, int spellCards) {
-        super(280, 40, 32, 48, 200f, Color.RED);
+        super(280, 40, 32, 48, 240f, Color.RED);
 
         this.name = name;
         this.hp = hp;
         this.power = power;
         this.spellCards = spellCards;
         this.score = 0;
+
+        setMovementPattern(new FixedMovement());
+        updatePowerStrategy();
+    }
+
+    public Player(
+        float x, float y, String name,
+        int hp, int power, int spellCards
+    ) {
+        super(x, y, 32, 48, 240f, Color.RED);
+
+        this.name = name;
+        this.hp = hp;
+        this.power = power;
+        this.spellCards = spellCards;
+        this.score = 0;
+
+        setMovementPattern(new FixedMovement());
+        updatePowerStrategy();
     }
 
     public void registerObserver(GameObserver observer) {
@@ -105,24 +131,17 @@ public class Player extends EntityShooter {
         }
     }
 
-    public Player(
-        float x, float y, String name,
-        int hp, int power, int spellCards
-    ) {
-        super(x, y, 32, 48, 200f, Color.RED);
-
-        this.name = name;
-        this.hp = hp;
-        this.power = power;
-        this.spellCards = spellCards;
-        this.score = 0;
-    }
-
     @Override
     public void update(float delta) {
         super.update(delta);
 
         shootTimer += delta;
+        homingShootTimer += delta;
+
+        if (shootTimer > 0.15f) {
+            shootTimer = shootCooldown;
+            homingShootTimer = homingCooldown;
+        }
 
         if (invulnerableTimer > 0f) {
             invulnerableTimer -= delta;
@@ -195,6 +214,192 @@ public class Player extends EntityShooter {
         }
     }
 
+    public void updatePowerStrategy() {
+        float spreadAngle = focused ? 4f : 18f;
+        float dualSpreadAngle = focused ? 3f : 12f;
+
+        float sideHOffset = focused ? 8f : 24f;
+        float sideVOffset = focused ? 16f : -16f;
+
+        float leftAngle = focused ? 100f : 120f;
+        float rightAngle = focused ? 80f : 60f;
+
+        float normalSpeed = 720f;
+        float homingSpeed = 500f;
+
+        if (power < 8) {
+            mainShootingPattern = new FrontShot(normalSpeed, 48);
+            sideShootingPattern = null;
+
+            homingCooldown = 30f / 60f;
+
+        } else if (power < 16) {
+            mainShootingPattern = new FrontShot(normalSpeed, 48);
+
+            sideShootingPattern = new SideShot(
+                homingSpeed, 14,
+                sideHOffset, sideVOffset,
+                leftAngle, rightAngle,
+                true,
+                new HomingBulletMovement(360f),
+                "bullet_amulet_homing"
+            );
+
+            homingCooldown = 30f / 60f;
+
+        } else if (power < 32) {
+            mainShootingPattern = new SpreadShot(
+                normalSpeed, 2, dualSpreadAngle,
+                30, 8f, null, null, null
+            );
+
+            sideShootingPattern = new SideShot(
+                homingSpeed, 14,
+                sideHOffset, sideVOffset,
+                leftAngle, rightAngle,
+                true,
+                new HomingBulletMovement(360f),
+                "bullet_amulet_homing"
+            );
+
+            homingCooldown = 30f / 60f;
+
+        } else if (power < 48) {
+            mainShootingPattern = new SpreadShot(
+                normalSpeed, 3, spreadAngle,
+                26, 0f, null, null, null
+            );
+
+            sideShootingPattern = new SideShot(
+                homingSpeed, 14,
+                sideHOffset, sideVOffset,
+                leftAngle, rightAngle,
+                true,
+                new HomingBulletMovement(360f),
+                "bullet_amulet_homing"
+            );
+
+            homingCooldown = 30f / 60f;
+
+        } else if (power < 64) {
+            mainShootingPattern = new SpreadShot(
+                normalSpeed, 3, spreadAngle,
+                26, 0f, null, null, null
+            );
+
+            sideShootingPattern = new SideShot(
+                homingSpeed, 12,
+                sideHOffset, sideVOffset,
+                leftAngle, rightAngle,
+                true,
+                new HomingBulletMovement(360f),
+                "bullet_amulet_homing"
+            );
+
+            homingCooldown = 15f / 60f;
+
+        } else if (power < 80) {
+            mainShootingPattern = new SpreadShot(
+                normalSpeed, 3, spreadAngle,
+                26, 0f, null, null, null
+            );
+
+            sideShootingPattern = new CompositeShootingPattern(
+                new SideShot(
+                    homingSpeed, 9,
+                    sideHOffset, sideVOffset,
+                    leftAngle, rightAngle,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                ),
+                new SideShot(
+                    homingSpeed, 12,
+                    sideHOffset + 4f, sideVOffset,
+                    leftAngle + 30f, rightAngle - 30f,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                )
+            );
+
+            homingCooldown = 15f / 60f;
+
+        } else if (power < 128) {
+            mainShootingPattern = new SpreadShot(
+                normalSpeed, 3, spreadAngle,
+                26, 0f, null, null, null
+            );
+
+            sideShootingPattern = new CompositeShootingPattern(
+                new SideShot(
+                    homingSpeed, 8,
+                    sideHOffset, sideVOffset,
+                    leftAngle - 10f, rightAngle + 10f,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                ),
+                new SideShot(
+                    homingSpeed, 8,
+                    sideHOffset + 4f, sideVOffset,
+                    leftAngle + 10f, rightAngle - 10f,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                )
+            );
+
+            homingCooldown = 15f / 60f;
+
+        } else {
+            mainShootingPattern = new SpreadShot(
+                normalSpeed, 4, spreadAngle * 1.2f,
+                24, 16f, null, null, null
+            );
+
+            sideShootingPattern = new CompositeShootingPattern(
+                new SideShot(
+                    homingSpeed, 8,
+                    sideHOffset, sideVOffset,
+                    leftAngle - 10f, rightAngle + 10f,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                ),
+                new SideShot(
+                    homingSpeed, 8,
+                    sideHOffset + 4f, sideVOffset,
+                    leftAngle + 10f, rightAngle - 10f,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                ),
+                new SideShot(
+                    homingSpeed, 8,
+                    sideHOffset + 8f, sideVOffset,
+                    leftAngle + 30f, rightAngle - 30f,
+                    true,
+                    new HomingBulletMovement(360f),
+                    "bullet_amulet_homing"
+                )
+            );
+
+            homingCooldown = 15f / 60f;
+        }
+
+        if (sideShootingPattern != null) {
+            setShootingPattern(
+                new CompositeShootingPattern(
+                    mainShootingPattern,
+                    sideShootingPattern
+                )
+            );
+        } else {
+            setShootingPattern(mainShootingPattern);
+        }
+    }
+
     @Override
     public void shootBullet(BulletManager bulletManager) {
         if (bulletManager == null) {
@@ -202,7 +407,14 @@ public class Player extends EntityShooter {
         }
 
         if (shootTimer >= shootCooldown) {
-            if (shootingPattern != null) {
+            if (mainShootingPattern != null) {
+                mainShootingPattern.execute(
+                    x + width / 2f - 8f,
+                    y + height,
+                    bulletManager,
+                    true
+                );
+            } else if (shootingPattern != null) {
                 shootingPattern.execute(
                     x + width / 2f - 8f,
                     y + height,
@@ -221,6 +433,19 @@ public class Player extends EntityShooter {
 
             shootTimer = 0f;
         }
+
+        if (sideShootingPattern != null
+            && homingShootTimer >= homingCooldown) {
+
+            sideShootingPattern.execute(
+                x + width / 2f - 8f,
+                y + height,
+                bulletManager,
+                true
+            );
+
+            homingShootTimer = 0f;
+        }
     }
 
     public void useBomb(
@@ -229,17 +454,37 @@ public class Player extends EntityShooter {
     ) {
         if (spellCards > 0) {
             spellCards--;
-            notifySpellCardsChanged();
-
             invulnerableTimer = 5.0f;
+            notifySpellCardsChanged();
 
             if (bulletManager != null) {
                 bulletManager.clearEnemyBullets(entities);
+
+                GameObject target = null;
+
+                if (entities != null) {
+                    for (GameObject obj : entities) {
+                        if (obj instanceof Enemy enemy
+                            && !enemy.isDestroyed()) {
+
+                            target = enemy;
+                            break;
+                        }
+                    }
+                }
+
+                bulletManager.spawnBombOrbs(
+                    x + width / 2f,
+                    y + height / 2f,
+                    target,
+                    entities
+                );
             }
 
             System.out.println(
-                name + " unleashes SPELL CARD (Fantasy Seal)! All enemy bullets cleared!"
+                name + " unleashes SPELL CARD: Spirit Sign Fantasy Seal (霊符「夢想封印」)! All enemy bullets cleared & 8 homing orbs launched!"
             );
+
         } else {
             System.out.println("No Spell Cards (Bombs) remaining!");
         }
@@ -403,6 +648,8 @@ public class Player extends EntityShooter {
         this.power = Math.max(10, this.power - 16);
         this.spellCards = 3;
 
+        updatePowerStrategy();
+
         notifyHpChanged();
         notifyPowerChanged();
         notifySpellCardsChanged();
@@ -419,6 +666,8 @@ public class Player extends EntityShooter {
         this.x = 200;
         this.y = 50;
         this.invulnerableTimer = 3.0f;
+
+        updatePowerStrategy();
 
         notifyLivesChanged();
         notifyHpChanged();
@@ -439,6 +688,7 @@ public class Player extends EntityShooter {
             switch (type) {
                 case POWER -> {
                     this.power += type.getPowerBonus();
+                    updatePowerStrategy();
                     notifyPowerChanged();
                     addScore(item.getScoreValue());
 
@@ -530,19 +780,14 @@ public class Player extends EntityShooter {
     }
 
     public void setFocused(boolean focused) {
-        this.focused = focused;
+        if (this.focused != focused) {
+            this.focused = focused;
+            updatePowerStrategy();
+        }
     }
 
     public int getGrazeCount() {
         return grazeCount;
-    }
-
-    public ShootingPattern getShootingPattern() {
-        return shootingPattern;
-    }
-
-    public void setShootingPattern(ShootingPattern shootingPattern) {
-        this.shootingPattern = shootingPattern;
     }
 
     public void shoot(Enemy target) {
@@ -583,6 +828,7 @@ public class Player extends EntityShooter {
 
     public void setPower(int power) {
         this.power = power;
+        updatePowerStrategy();
         notifyPowerChanged();
     }
 
@@ -597,5 +843,21 @@ public class Player extends EntityShooter {
 
     public long getScore() {
         return score;
+    }
+
+    public ShootingPattern getMainShootingPattern() {
+        return mainShootingPattern;
+    }
+
+    public ShootingPattern getSideShootingPattern() {
+        return sideShootingPattern;
+    }
+
+    public float getShootCooldown() {
+        return shootCooldown;
+    }
+
+    public float getHomingCooldown() {
+        return homingCooldown;
     }
 }

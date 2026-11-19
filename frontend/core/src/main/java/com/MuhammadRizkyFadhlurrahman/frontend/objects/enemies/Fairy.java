@@ -1,12 +1,12 @@
+
 package com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies;
 
 import com.badlogic.gdx.graphics.Color;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.Collidable;
-import com.MuhammadRizkyFadhlurrahman.frontend.objects.Player;
-import com.badlogic.gdx.graphics.Color;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.shootingStrategy.FrontShot;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.entityStrategy.LinearEntityMovement;
+
 public class Fairy extends Enemy {
+
     private float shootTimer = 0f;
     private float shootDelay = 0.67f;
     private float shootInterval = 1.4f;
@@ -15,27 +15,33 @@ public class Fairy extends Enemy {
 
     public Fairy(String name, int hp) {
         super(150, 380, 24, 24, Color.PINK, name, hp, 500L);
+
         setShootingPattern(new FrontShot(150f, 10));
         setMovementPattern(new LinearEntityMovement(0f, -40f));
     }
 
     public Fairy(float x, float y, String name, int hp) {
         super(x, y, 24, 24, Color.PINK, name, hp, 500L);
+
         setShootingPattern(new FrontShot(150f, 10));
         setMovementPattern(new LinearEntityMovement(0f, -40f));
     }
 
-    public Fairy(float x, float y, String name, int hp, float shootDelay, float shootInterval, int maxShots) {
+    public Fairy(float x, float y, String name, int hp,
+                 float shootDelay, float shootInterval, int maxShots) {
         super(x, y, 24, 24, Color.PINK, name, hp, 500L);
+
         this.shootDelay = shootDelay;
         this.shootInterval = shootInterval;
         this.maxShots = maxShots;
+
         setShootingPattern(new FrontShot(150f, 10));
         setMovementPattern(new LinearEntityMovement(0f, -40f));
     }
 
     public boolean canShoot(float delta) {
         shootTimer += delta;
+
         if (shotsFired == 0) {
             if (shootTimer >= shootDelay) {
                 shotsFired++;
@@ -49,6 +55,7 @@ public class Fairy extends Enemy {
                 return true;
             }
         }
+
         return false;
     }
 
