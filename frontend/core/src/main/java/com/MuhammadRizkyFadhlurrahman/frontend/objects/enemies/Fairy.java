@@ -18,6 +18,7 @@ public class Fairy extends Enemy {
 
         setShootingPattern(new FrontShot(150f, 10));
         setMovementPattern(new LinearEntityMovement(0f, -40f));
+        setShotHitboxSize(28f, 28f);
     }
 
     public Fairy(float x, float y, String name, int hp) {
@@ -25,6 +26,7 @@ public class Fairy extends Enemy {
 
         setShootingPattern(new FrontShot(150f, 10));
         setMovementPattern(new LinearEntityMovement(0f, -40f));
+        setShotHitboxSize(28f, 28f);
     }
 
     public Fairy(float x, float y, String name, int hp,
@@ -37,6 +39,7 @@ public class Fairy extends Enemy {
 
         setShootingPattern(new FrontShot(150f, 10));
         setMovementPattern(new LinearEntityMovement(0f, -40f));
+        setShotHitboxSize(28f, 28f);
     }
 
     public boolean canShoot(float delta) {
@@ -65,9 +68,23 @@ public class Fairy extends Enemy {
         this.maxShots = maxShots;
     }
 
-    public int getShotsFired() { return shotsFired; }
-    public float getShootTimer() { return shootTimer; }
-    public float getShootDelay() { return shootDelay; }
-    public float getShootInterval() { return shootInterval; }
-    public int getMaxShots() { return maxShots; }
+    public int getShotsFired() {
+        return shotsFired;
+    }
+
+    public float getShootTimer() {
+        return shootTimer;
+    }
+
+    public float getShootDelay() {
+        return shootDelay;
+    }
+
+    public float getShootInterval() {
+        return shootInterval;
+    }
+
+    public int getMaxShots() {
+        return maxShots;
+    }
 }

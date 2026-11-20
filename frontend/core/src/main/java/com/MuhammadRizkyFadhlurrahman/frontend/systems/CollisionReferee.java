@@ -13,13 +13,16 @@ import java.util.ArrayList;
 
 public class CollisionReferee {
 
+    private int defeatCounter = 0;
+    private int itemDropCount = 0;
+
     public void resolveCollisions(Player player, List<GameObject> entities, BulletManager bulletManager) {
 
         if (player == null || entities == null || bulletManager == null) return;
 
         List<GameObject> newDrops = new ArrayList<>();
 
-
+        // Part 1 - Player Bullets vs Enemies
         for (Bullet bullet : bulletManager.getActivePlayerBullets()) {
 
             if (bullet.isDestroyed()) continue;
@@ -28,20 +31,43 @@ public class CollisionReferee {
 
                 if (entity instanceof Enemy enemy && !enemy.isDestroyed()) {
 
-                    if (bullet.getCoreHitbox().overlaps(enemy.getCoreHitbox())) {
+                    if (bullet.getShotHitbox().overlaps(enemy.getShotHitbox())) {
 
-                        boolean defeated = enemy.takeDamage(bullet.getDamage());
+                        if (enemy.isDamageable()) {
+                            boolean defeated = enemy.takeDamage(bullet.getDamage());
 
-                        if (defeated) {
-                            player.addScore(enemy.getScoreValue());
+                            if (defeated) {
+                                player.addScore(enemy.getScoreValue());
 
-                            Item drop = EntityFactory.createItem(
-                                enemy.getX(),
-                                enemy.getY(),
-                                ItemType.POWER
-                            );
+                                ItemType dropType = null;
 
-                            newDrops.add(drop);
+                                if (enemy.getItemDrop() != null) {
+                                    dropType = enemy.getItemDrop();
+                                } else if (defeatCounter++ % 3 == 0) {
+                                    dropType = (itemDropCount++ % 2 == 0)
+                                        ? ItemType.POWER
+                                        : ItemType.POINT;
+                                }
+
+                                if (dropType != null) {
+                                    Item drop = EntityFactory.createItem(
+                                        enemy.getX(),
+                                        enemy.getY(),
+                                        dropType
+                                    );
+
+                                    newDrops.add(drop);
+
+                                    System.out.println(
+                                        "[CollisionReferee] Defeated "
+                                            + enemy.getName()
+                                            + "! Dropped " + dropType
+                                            + " item at ("
+                                            + enemy.getX() + ", "
+                                            + enemy.getY() + ")"
+                                    );
+                                }
+                            }
                         }
 
                         bullet.destroy();
@@ -51,20 +77,20 @@ public class CollisionReferee {
             }
         }
 
-
+        // Part 2 - Enemy Bullets vs Player
         for (Bullet bullet : bulletManager.getActiveEnemyBullets()) {
 
             if (bullet.isDestroyed()) continue;
 
             if (!player.isDestroyed()) {
 
-
                 if (bullet.getCoreHitbox().overlaps(player.getCoreHitbox())) {
 
                     if (!player.isInvulnerable()) {
                         System.out.println(
                             "[CollisionReferee] CORE HIT! Enemy Bullet hit "
-                                + player.getName() + " for " + bullet.getDamage() + " DMG!"
+                                + player.getName() + " for "
+                                + bullet.getDamage() + " DMG!"
                         );
 
                         player.takeDamage(100, bulletManager, entities);
@@ -72,7 +98,6 @@ public class CollisionReferee {
                         break;
                     }
                 }
-
 
                 else if (!bullet.hasBeenGrazed()
                     && bullet.getCoreHitbox().overlaps(player.getGrazeHitbox())) {
@@ -82,17 +107,17 @@ public class CollisionReferee {
 
                     System.out.println(
                         "[CollisionReferee] GRAZE! "
-                            + player.getName() + " grazed an enemy bullet (+50 pts)!"
+                            + player.getName()
+                            + " grazed an enemy bullet (+50 pts)!"
                     );
                 }
             }
         }
 
-
+        // Part 3 - Player vs Items and Enemies
         for (GameObject entity : entities) {
 
             if (entity.isDestroyed()) continue;
-
 
             if (entity instanceof Item item) {
 
@@ -103,8 +128,7 @@ public class CollisionReferee {
                 }
             }
 
-
-            else if (entity instanceof Enemy enemy) {
+            else if (entity instanceof Enemy enemy && enemy.isCollidable()) {
 
                 if (!player.isInvulnerable()
                     && player.getCoreHitbox().overlaps(enemy.getCoreHitbox())) {

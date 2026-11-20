@@ -3,6 +3,8 @@ package com.MuhammadRizkyFadhlurrahman.frontend.objects.bullets;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.BulletType;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.Collidable;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.GameObject;
@@ -10,6 +12,8 @@ import com.MuhammadRizkyFadhlurrahman.frontend.objects.enemies.Enemy;
 import com.MuhammadRizkyFadhlurrahman.frontend.objects.patterns.bulletStrategy.BulletMovementPattern;
 
 public class Bullet extends GameObject {
+
+    private static final float PLAYER_SHOT_HITBOX = 12f;
 
     private BulletType bulletType;
     private int damage;
@@ -101,6 +105,19 @@ public class Bullet extends GameObject {
             enemy.takeDamage(damage);
             destroy();
         }
+    }
+
+    public Rectangle getShotHitbox() {
+        if (!isPlayerBullet) {
+            return getCoreHitbox();
+        }
+
+        return new Rectangle(
+            x + (width - PLAYER_SHOT_HITBOX) / 2f,
+            y + (height - PLAYER_SHOT_HITBOX) / 2f,
+            PLAYER_SHOT_HITBOX,
+            PLAYER_SHOT_HITBOX
+        );
     }
 
     public BulletType getBulletType() {
